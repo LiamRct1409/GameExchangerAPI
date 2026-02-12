@@ -2,19 +2,30 @@ const express = require('express');
 const { dal } = require('./dal');
 const app = express();
 const port = 3000 || process.env.PORT;
+const { Kafka } = require('kafkajs');
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-
-app.get('/', (req, res) => {
-    res.send('Hello World!');
-});
 
 app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
 });
 
+
+const kafkaClient = new Kafka({
+    clientId: 'game-exchanger-api',
+    brokers: ['kafka:9092']
+});
+
+const producer = kafkaClient.producer();
+
+await producer.connect();
+await producer.send({
+    topic: 'status',
+    messages: [
+        { value: 'Game Exchanger API is up and running!' }
+    ]
+});
 
 //Game Routes
 
@@ -112,6 +123,13 @@ app.patch('/users/:id', (req, res) => {
 
     dal.updateUser(req.params.id, updateData);
 
+    producer.send({
+        topic: 'user-updates',
+        messages: [
+            { value: `User with ID ${req.params.id} has been updated.` }
+        ]
+    });
+
     res.status(200).send(`Updated user with ID ${req.params.id}`);
 });
 
@@ -148,6 +166,13 @@ app.post('/exchanges', (req, res) => {
 
     dal.addExchange(newExchange);
 
+    producer.send({
+        topic: 'exchange-updates',
+        messages: [
+            { value: `New exchange created between user ${newExchange.FromUserID} and user ${newExchange.ToUserID} for game ${newExchange.GameID}.` }
+        ]
+    });
+
     res.status(201).send('Added a new exchange');
 });
 
@@ -166,6 +191,22 @@ app.patch('/exchanges/:id', (req, res) => {
         ToUserID: req.body.ToUserID,
         ExchangeDate: req.body.ExchangeDate,
         Status: req.body.Status
+    }
+
+    if (updateData.Status === 'Accepted') {
+        producer.send({
+            topic: 'exchange-updates',
+            messages: [
+                { value: `Exchange with ID ${req.params.id} has been accepted.` }
+            ]
+        });
+    } else if (updateData.Status === 'Rejected') {
+        producer.send({
+            topic: 'exchange-updates',
+            messages: [
+                { value: `Exchange with ID ${req.params.id} has been rejected.` }
+            ]
+        });
     }
 
     dal.updateExchange(req.params.id, updateData);
