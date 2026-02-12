@@ -10,7 +10,6 @@ let dal = {
             await client.connect();
             const db = client.db('GameExchangerDB');
             const gamesCollection = db.collection('Games');
-            game.id = Date.now().toString();
             game.ownerId = null;
             const result = await gamesCollection.insertOne(game);
             return result;
@@ -75,7 +74,6 @@ let dal = {
             await client.connect();
             const db = client.db('GameExchangerDB');
             const usersCollection = db.collection('Users');
-            user.id = Date.now().toString();
             const result = await usersCollection.insertOne(user);
             return result;
         } catch (error) {
@@ -166,7 +164,20 @@ let dal = {
         } catch (error) {
             console.error("Error getting exchanges:", error);
         }
-    }
+    },
+
+    async updateExchange(id, updateData) {
+        try {
+            await client.connect();
+            const db = client.db('GameExchangerDB');
+            const exchangesCollection = db.collection('Exchanges');
+            const result = await exchangesCollection.updateOne({ _id: id }, { $set: updateData });
+            return result;
+        } catch (error) {
+            console.error("Error updating exchange:", error);
+        }
+    },
+
 }
 
 exports.dal = dal;

@@ -3,6 +3,10 @@ const { dal } = require('./dal');
 const app = express();
 const port = 3000 || process.env.PORT;
 
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+
 app.get('/', (req, res) => {
     res.send('Hello World!');
 });
@@ -152,4 +156,18 @@ app.get('/exchanges', (req, res) => {
     const exchanges = dal.getAllExchanges();
 
     res.status(200).send(exchanges);
+});
+
+app.patch('/exchanges/:id', (req, res) => {
+
+    const updateData = {
+        GameID: req.body.GameID,
+        FromUserID: req.body.FromUserID,
+        ToUserID: req.body.ToUserID,
+        ExchangeDate: req.body.ExchangeDate,
+        Status: req.body.Status
+    }
+
+    dal.updateExchange(req.params.id, updateData);
+    res.status(200).send(`Updated exchange with ID ${req.params.id}`);
 });
