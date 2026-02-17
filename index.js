@@ -19,7 +19,14 @@ const kafkaClient = new Kafka({
 
 const producer = kafkaClient.producer();
 
-await producer.connect();
+
+async function startKafkaProducer() {
+    await producer.connect();
+    console.log('Kafka Producer connected');
+}
+
+startKafkaProducer().catch(console.error);
+
 await producer.send({
     topic: 'status',
     messages: [
@@ -114,23 +121,29 @@ app.get('/users', (req, res) => {
 });
 
 app.patch('/users/:id', (req, res) => {
-    const updateData = {
-        Name: req.body.Name,
-        Email: req.body.Email,
-        Password: req.body.Password,
-        Address: req.body.Address
+    try {
+        const updateData = {
+            Name: req.body.Name,
+            Email: req.body.Email,
+            Password: req.body.Password,
+            Address: req.body.Address
+        }
+
+        dal.updateUser(req.params.id, updateData);
+
+        producer.send({
+            topic: 'user-updates',
+            messages: [
+                { key: `user-${req.params.id}`, value: `User with Email ${updateData.Email} has been updated.` }
+            ]
+        });
+        
+        res.status(200).send(`Updated user with ID ${req.params.id}`);
+
+    } catch (error) {
+        console.error("Error updating user:", error);
     }
 
-    dal.updateUser(req.params.id, updateData);
-
-    producer.send({
-        topic: 'user-updates',
-        messages: [
-            { value: `User with ID ${req.params.id} has been updated.` }
-        ]
-    });
-
-    res.status(200).send(`Updated user with ID ${req.params.id}`);
 });
 
 app.put('/users/:id', (req, res) => {
@@ -156,24 +169,32 @@ app.delete('/users/:id', (req, res) => {
 //Exchange Routes
 app.post('/exchanges', (req, res) => {
 
-    const newExchange = {
-        GameID: req.body.GameID,
-        FromUserID: req.body.FromUserID,
-        ToUserID: req.body.ToUserID,
-        ExchangeDate: req.body.ExchangeDate,
-        Status: req.body.Status
+    try {
+
+        const newExchange = {
+            GameID: req.body.GameID,
+            FromUserEmail: req.body.FromUserEmail,
+            ToUserEmail: req.body.ToUserEmail,
+            ExchangeDate: req.body.ExchangeDate,
+            Status: req.body.Status
+        }
+
+        dal.addExchange(newExchange);
+
+        producer.send({
+            topic: 'exchange-updates',
+            messages: [
+                { key: `exchange-${newExchange.FromUserEmail}-${newExchange.ToUserEmail}`, value: `New exchange created between user ${newExchange.FromUserEmail} and user ${newExchange.ToUserEmail} for game ${newExchange.GameID}.` }
+            ]
+        });
+
+        res.status(201).send('Added a new exchange');
+
+    } catch (error) {
+        console.error("Error adding exchange:", error);
     }
 
-    dal.addExchange(newExchange);
-
-    producer.send({
-        topic: 'exchange-updates',
-        messages: [
-            { value: `New exchange created between user ${newExchange.FromUserID} and user ${newExchange.ToUserID} for game ${newExchange.GameID}.` }
-        ]
-    });
-
-    res.status(201).send('Added a new exchange');
+    
 });
 
 app.get('/exchanges', (req, res) => {
@@ -185,30 +206,36 @@ app.get('/exchanges', (req, res) => {
 
 app.patch('/exchanges/:id', (req, res) => {
 
-    const updateData = {
-        GameID: req.body.GameID,
-        FromUserID: req.body.FromUserID,
-        ToUserID: req.body.ToUserID,
-        ExchangeDate: req.body.ExchangeDate,
-        Status: req.body.Status
-    }
+    try {
+        const updateData = {
+            GameID: req.body.GameID,
+            FromUserEmail: req.body.FromUserEmail,
+            ToUserEmail: req.body.ToUserEmail,
+            ExchangeDate: req.body.ExchangeDate,
+            Status: req.body.Status
+        }
 
-    if (updateData.Status === 'Accepted') {
-        producer.send({
-            topic: 'exchange-updates',
-            messages: [
-                { value: `Exchange with ID ${req.params.id} has been accepted.` }
-            ]
-        });
-    } else if (updateData.Status === 'Rejected') {
-        producer.send({
-            topic: 'exchange-updates',
-            messages: [
-                { value: `Exchange with ID ${req.params.id} has been rejected.` }
-            ]
-        });
-    }
+        if (updateData.Status === 'Accepted') {
+            producer.send({
+                topic: 'exchange-updates',
+                messages: [
+                    { key: `exchange-${req.params.id}`, value: `Exchange between ${updateData.FromUserEmail} and ${updateData.ToUserEmail} has been accepted.` }
+                ]
+            });
+        } else if (updateData.Status === 'Rejected') {
+            producer.send({
+                topic: 'exchange-updates',
+                messages: [
+                    { key: `exchange-${req.params.id}`, value: `Exchange between ${updateData.FromUserEmail} and ${updateData.ToUserEmail} has been rejected.` }
+                ]
+            });
+        }
 
-    dal.updateExchange(req.params.id, updateData);
-    res.status(200).send(`Updated exchange with ID ${req.params.id}`);
+        dal.updateExchange(req.params.id, updateData);
+
+        res.status(200).send(`Updated exchange with ID ${req.params.id}`);
+
+    } catch (error) {
+        console.error("Error updating exchange:", error);
+    }
 });
