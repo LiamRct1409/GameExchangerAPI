@@ -27,12 +27,6 @@ async function startKafkaProducer() {
 
 startKafkaProducer().catch(console.error);
 
-await producer.send({
-    topic: 'status',
-    messages: [
-        { value: 'Game Exchanger API is up and running!' }
-    ]
-});
 
 //Game Routes
 
