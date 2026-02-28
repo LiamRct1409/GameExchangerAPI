@@ -198,7 +198,7 @@ app.get('/exchanges', (req, res) => {
     res.status(200).send(exchanges);
 });
 
-app.patch('/exchanges/:id', (req, res) => {
+app.patch('/exchanges/:id', async (req, res) => {
 
     try {
         const updateData = {
@@ -210,19 +210,37 @@ app.patch('/exchanges/:id', (req, res) => {
         }
 
         if (updateData.Status === 'Accepted') {
-            producer.send({
+
+            await producer.send({
                 topic: 'exchange-updates',
                 messages: [
-                    { key: `exchange-${req.params.id}`, value: `Exchange between ${updateData.FromUserEmail} and ${updateData.ToUserEmail} has been accepted.` }
+                    {
+                        value: JSON.stringify({
+                            type: 'exchange-status',
+                            status: 'accepted',
+                            fromEmail: updateData.FromUserEmail,
+                            toEmail: updateData.ToUserEmail
+                        })
+                    }
                 ]
             });
+
         } else if (updateData.Status === 'Rejected') {
-            producer.send({
+
+            await producer.send({
                 topic: 'exchange-updates',
                 messages: [
-                    { key: `exchange-${req.params.id}`, value: `Exchange between ${updateData.FromUserEmail} and ${updateData.ToUserEmail} has been rejected.` }
+                    {
+                        value: JSON.stringify({
+                            type: 'exchange-status',
+                            status: 'rejected',
+                            fromEmail: updateData.FromUserEmail,
+                            toEmail: updateData.ToUserEmail
+                        })
+                    }
                 ]
             });
+            
         }
 
         dal.updateExchange(req.params.id, updateData);
