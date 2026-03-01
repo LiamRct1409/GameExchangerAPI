@@ -19,7 +19,6 @@ const kafkaClient = new Kafka({
 
 const producer = kafkaClient.producer();
 
-
 async function startKafkaProducer() {
     await producer.connect();
     console.log('Kafka Producer connected');
@@ -128,7 +127,10 @@ app.patch('/users/:id', (req, res) => {
         producer.send({
             topic: 'user-updates',
             messages: [
-                { key: `user-${req.params.id}`, value: `User with Email ${updateData.Email} has been updated.` }
+                { value: JSON.stringify({
+                    type: 'user-update',
+                    value: `User with email ${updateData.Email} has been updated.`
+                }) }
             ]
         });
         
@@ -240,7 +242,7 @@ app.patch('/exchanges/:id', async (req, res) => {
                     }
                 ]
             });
-            
+
         }
 
         dal.updateExchange(req.params.id, updateData);
