@@ -180,9 +180,18 @@ app.post('/exchanges', (req, res) => {
         producer.send({
             topic: 'exchange-updates',
             messages: [
-                { key: `exchange-${newExchange.FromUserEmail}-${newExchange.ToUserEmail}`, value: `New exchange created between user ${newExchange.FromUserEmail} and user ${newExchange.ToUserEmail} for game ${newExchange.GameID}.` }
+                { 
+                    key: `exchange-${newExchange.FromUserEmail}-${newExchange.ToUserEmail}`, 
+                    value: JSON.stringify({
+                        type: "exchange-created",
+                        fromEmail: newExchange.FromUserEmail,
+                        toEmail: newExchange.ToUserEmail,
+                        gameId: newExchange.GameID
+                    })
+                }
             ]
         });
+
 
         res.status(201).send('Added a new exchange');
 
