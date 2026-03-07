@@ -23,7 +23,7 @@ let dal = {
             await client.connect();
             const db = client.db('GameExchangerDB');
             const gamesCollection = db.collection('Games');
-            const games = await gamesCollection.find().toArray();
+            const games = await gamesCollection.find({}).toArray();
             return games;
         } catch (error) {
             console.error("Error getting games:", error);
