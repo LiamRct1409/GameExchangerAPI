@@ -183,10 +183,9 @@ app.post('/exchanges', (req, res) => {
                 { 
                     key: `exchange-${newExchange.FromUserEmail}-${newExchange.ToUserEmail}`, 
                     value: JSON.stringify({
-                        type: "exchange-created",
                         fromEmail: newExchange.FromUserEmail,
                         toEmail: newExchange.ToUserEmail,
-                        gameId: newExchange.GameID
+                        status: 'pending'
                     })
                 }
             ]
