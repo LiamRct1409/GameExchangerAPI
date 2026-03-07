@@ -129,7 +129,7 @@ app.patch('/users/:id', (req, res) => {
             messages: [
                 { value: JSON.stringify({
                     type: 'user-update',
-                    value: `User with email ${updateData.Email} has been updated.`
+                    value: updateData.Email
                 }) }
             ]
         });
