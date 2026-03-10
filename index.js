@@ -44,14 +44,14 @@ app.post('/games', (req, res) => {
     res.status(201).send('Added a new game');
 });
 
-app.get('/games', (req, res) => {
+app.get('/games', async (req, res) => {
 
-    const games = dal.getAllGames();
+    const games = await dal.getAllGames();
 
     res.status(200).send(games);
 });
 
-app.patch('/games/:id', (req, res) => {
+app.patch('/games/:id', async (req, res) => {
 
     const updateData = {
         Name: req.body.Name,
@@ -62,12 +62,12 @@ app.patch('/games/:id', (req, res) => {
         ownerId: req.body.ownerId
     }
 
-    dal.updateGame(req.params.id, updateData);
+    await dal.updateGame(req.params.id, updateData);
 
     res.status(200).send(`Updated game with ID ${req.params.id}`);
 });
 
-app.put('/games/:id', (req, res) => {
+app.put('/games/:id', async (req, res) => {
 
     const newGameData = {
         Name: req.body.Name,
@@ -78,21 +78,21 @@ app.put('/games/:id', (req, res) => {
         ownerId: req.body.ownerId
     }
 
-    dal.replaceGame(req.params.id, newGameData);
+    await dal.replaceGame(req.params.id, newGameData);
 
     res.status(200).send(`Replaced game with ID ${req.params.id}`);
 });
 
-app.delete('/games/:id', (req, res) => {
+app.delete('/games/:id', async (req, res) => {
 
-    dal.deleteGame(req.params.id);
+    await dal.deleteGame(req.params.id);
 
     res.status(200).send(`Deleted game with ID ${req.params.id}`);
 });
 
 //User Routes
 
-app.post('/users', (req, res) => {
+app.post('/users', async (req, res) => {
 
     const newUser = {
         Name: req.body.Name,
@@ -101,19 +101,19 @@ app.post('/users', (req, res) => {
         Address: req.body.Address
     }
 
-    dal.addUser(newUser);
+    await dal.addUser(newUser);
 
     res.status(201).send('Added a new user');
 });
 
-app.get('/users', (req, res) => {
+app.get('/users', async (req, res) => {
 
-    const users = dal.getAllUsers();
+    const users = await dal.getAllUsers();
 
     res.status(200).send(users);
 });
 
-app.patch('/users/:id', (req, res) => {
+app.patch('/users/:id', async (req, res) => {
     try {
         const updateData = {
             Name: req.body.Name,
@@ -122,7 +122,7 @@ app.patch('/users/:id', (req, res) => {
             Address: req.body.Address
         }
 
-        dal.updateUser(req.params.id, updateData);
+        await dal.updateUser(req.params.id, updateData);
 
         producer.send({
             topic: 'user-updates',
@@ -142,7 +142,7 @@ app.patch('/users/:id', (req, res) => {
 
 });
 
-app.put('/users/:id', (req, res) => {
+app.put('/users/:id', async (req, res) => {
     const newUserData = {
         Name: req.body.Name,
         Email: req.body.Email,
@@ -150,20 +150,20 @@ app.put('/users/:id', (req, res) => {
         Address: req.body.Address
     }
 
-    dal.replaceUser(req.params.id, newUserData);
+    await dal.replaceUser(req.params.id, newUserData);
 
     res.status(200).send(`Replaced user with ID ${req.params.id}`);
 });
 
-app.delete('/users/:id', (req, res) => {
+app.delete('/users/:id', async (req, res) => {
 
-    dal.deleteUser(req.params.id);
+    await dal.deleteUser(req.params.id);
 
     res.status(200).send(`Deleted user with ID ${req.params.id}`);
 });
 
 //Exchange Routes
-app.post('/exchanges', (req, res) => {
+app.post('/exchanges', async (req, res) => {
 
     try {
 
@@ -175,7 +175,7 @@ app.post('/exchanges', (req, res) => {
             Status: req.body.Status
         }
 
-        dal.addExchange(newExchange);
+        await dal.addExchange(newExchange);
 
         producer.send({
             topic: 'exchange-updates',
@@ -201,9 +201,9 @@ app.post('/exchanges', (req, res) => {
     
 });
 
-app.get('/exchanges', (req, res) => {
+app.get('/exchanges', async (req, res) => {
 
-    const exchanges = dal.getAllExchanges();
+    const exchanges = await dal.getAllExchanges();
 
     res.status(200).send(exchanges);
 });
@@ -253,7 +253,7 @@ app.patch('/exchanges/:id', async (req, res) => {
 
         }
 
-        dal.updateExchange(req.params.id, updateData);
+        await dal.updateExchange(req.params.id, updateData);
 
         res.status(200).send(`Updated exchange with ID ${req.params.id}`);
 

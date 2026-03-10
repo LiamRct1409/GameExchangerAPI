@@ -1,14 +1,16 @@
-const { MongoClient } = require('mongodb');
+const { MongoClient, ObjectId } = require('mongodb');
 const uri = "mongodb+srv://dbUser:Password@cluster0.1tj1ppj.mongodb.net/";
 const client = new MongoClient(uri);
+
+await client.connect();
+const db = client.db('GameExchangerDB');
+
 
 
 let dal = {
     // Game Methods
     async addGame(game) {
         try {
-            await client.connect();
-            const db = client.db('GameExchangerDB');
             const gamesCollection = db.collection('Games');
             game.ownerId = null;
             const result = await gamesCollection.insertOne(game);
@@ -20,8 +22,6 @@ let dal = {
 
     async getAllGames() {
         try {
-            await client.connect();
-            const db = client.db('GameExchangerDB');
             const gamesCollection = db.collection('Games');
             const games = await gamesCollection.find({}).toArray();
             return games;
@@ -32,10 +32,8 @@ let dal = {
 
     async updateGame(id, updateData) {
         try {
-            await client.connect();
-            const db = client.db('GameExchangerDB');
             const gamesCollection = db.collection('Games');
-            const result = await gamesCollection.updateOne({ _id: id }, { $set: updateData });
+            const result = await gamesCollection.updateOne({ _id: new ObjectId(id) }, { $set: updateData });
             return result;
         } catch (error) {
             console.error("Error updating game:", error);
@@ -44,11 +42,9 @@ let dal = {
 
     async replaceGame(id, newGameData) {
         try {
-            await client.connect();
-            const db = client.db('GameExchangerDB');
             const gamesCollection = db.collection('Games');
             newGameData.ownerId = newGameData.ownerId || null; 
-            const result = await gamesCollection.replaceOne({ _id: id }, newGameData);
+            const result = await gamesCollection.replaceOne({ _id: new ObjectId(id) }, newGameData);
             return result;
         } catch (error) {
             console.error("Error replacing game:", error);
@@ -57,10 +53,8 @@ let dal = {
 
     async deleteGame(id) {
         try {
-            await client.connect();
-            const db = client.db('GameExchangerDB');
             const gamesCollection = db.collection('Games');
-            const result = await gamesCollection.deleteOne({ _id: id });
+            const result = await gamesCollection.deleteOne({ _id: new ObjectId(id) });
             return result;
         } catch (error) {
             console.error("Error deleting game:", error);
@@ -98,7 +92,7 @@ let dal = {
             await client.connect();
             const db = client.db('GameExchangerDB');
             const usersCollection = db.collection('Users');
-            const result = await usersCollection.updateOne({ _id: id }, { $set: updateData });
+            const result = await usersCollection.updateOne({ _id: new ObjectId(id) }, { $set: updateData });
             return result;
         } catch (error) {
             console.error("Error updating user:", error);
@@ -110,7 +104,7 @@ let dal = {
             await client.connect();
             const db = client.db('GameExchangerDB');
             const usersCollection = db.collection('Users');
-            const result = await usersCollection.replaceOne({ _id: id }, newUserData);
+            const result = await usersCollection.replaceOne({ _id: new ObjectId(id) }, newUserData);
             return result;
         } catch (error) {
             console.error("Error replacing user:", error);
@@ -122,7 +116,7 @@ let dal = {
             await client.connect();
             const db = client.db('GameExchangerDB');
             const usersCollection = db.collection('Users');
-            const result = await usersCollection.deleteOne({ _id: id });
+            const result = await usersCollection.deleteOne({ _id: new ObjectId(id) });
             return result;
         } catch (error) {
             console.error("Error deleting user:", error);
@@ -171,7 +165,7 @@ let dal = {
             await client.connect();
             const db = client.db('GameExchangerDB');
             const exchangesCollection = db.collection('Exchanges');
-            const result = await exchangesCollection.updateOne({ _id: id }, { $set: updateData });
+            const result = await exchangesCollection.updateOne({ _id: new ObjectId(id) }, { $set: updateData });
             return result;
         } catch (error) {
             console.error("Error updating exchange:", error);
