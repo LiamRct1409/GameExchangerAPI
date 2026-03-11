@@ -3,6 +3,8 @@ const { dal } = require('./dal');
 const app = express();
 const port = 3000 || process.env.PORT;
 const { Kafka } = require('kafkajs');
+const jwt = require('jsonwebtoken');
+
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -26,10 +28,23 @@ async function startKafkaProducer() {
 
 startKafkaProducer().catch(console.error);
 
+function authenticateToken(req, res, next) {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+    if (!token) return res.sendStatus(401);
+
+    jwt.verify(token, 'supersecretkey', (err, user) => {
+        if (err) return res.sendStatus(403);
+        req.user = user;
+        next();
+    });
+
+}
+
 
 //Game Routes
 
-app.post('/games', (req, res) => {
+app.post('/games', authenticateToken, (req, res) => {
 
     const newGame = {
         Name: req.body.Name,

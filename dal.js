@@ -2,7 +2,7 @@ const { MongoClient, ObjectId } = require('mongodb');
 const uri = "mongodb+srv://dbUser:Password@cluster0.1tj1ppj.mongodb.net/";
 const client = new MongoClient(uri);
 
-await client.connect();
+client.connect();
 const db = client.db('GameExchangerDB');
 
 
